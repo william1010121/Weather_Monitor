@@ -1,0 +1,22 @@
+# Development override for docker-compose
+# Use: docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+
+version: '3.8'
+
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+      - /app/.venv  # Prevent mounting over the virtual environment
+      - /app/__pycache__
+    command: uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DEBUG: "true"
+
+  frontend:
+    build:
+      target: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm start

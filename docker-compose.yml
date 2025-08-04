@@ -13,6 +13,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - weather_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weather_user -d weather_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   backend:
     build: ./backend
@@ -20,25 +25,32 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://weather_user:weather_password@postgres:5432/weather_db
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_google_client_id}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-your_google_client_secret}
+      SECRET_KEY: ${SECRET_KEY:-your_super_secret_key_change_in_production}
+      ENVIRONMENT: development
+      DEBUG: "true"
     depends_on:
-      - postgres
-    volumes:
-      - ./backend:/app
+      postgres:
+        condition: service_healthy
     networks:
       - weather_net
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_google_client_id}
+    depends_on:
+      - backend
     networks:
       - weather_net
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
+    restart: unless-stopped
 
 volumes:
   postgres_data:
