@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_, func
 from typing import List, Optional
 from datetime import datetime, timedelta
+import csv
+import io
 from ..core.database import get_db
 from ..models.observation_model import Observation
 from ..models.user_model import User
@@ -237,3 +240,116 @@ async def get_user_observations(
     )
     
     return observations
+
+@router.get("/export/csv")
+async def export_observations_csv(
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Export observations as CSV file"""
+    try:
+        # Build query without join first, then get observations
+        query = db.query(Observation)
+        
+        # Filter by date range if provided
+        if start_date:
+            query = query.filter(Observation.observation_time >= start_date)
+        if end_date:
+            query = query.filter(Observation.observation_time <= end_date)
+        
+        # Filter by observer if not admin
+        if not current_user.is_admin:
+            query = query.filter(Observation.observer_id == current_user.id)
+        
+        observations = query.order_by(desc(Observation.observation_time)).all()
+        
+        # Create CSV data
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header (Chinese field names for UI display)
+        writer.writerow([
+            '觀測時間',
+            '觀測人員', 
+            '現在溫度 (°C)',
+            '濕球溫度 (°C)',
+            '降水量 (mm)',
+            '蒸發皿水溫 (°C)',
+            '現蒸發皿水位高 (mm)',
+            '現在天氣代碼',
+            '總雲量 (0-8)',
+            '高雲雲種代碼 (0-9)',
+            '高雲雲量 (0-8)',
+            '中雲雲種代碼 (0-9)',
+            '中雲雲量 (0-8)',
+            '低雲雲種代碼 (0-9)',
+            '低雲雲量 (0-8)',
+            '洗蒸發皿後水位高 (mm)',
+            '洗蒸發皿後水溫 (°C)',
+            '加蒸發皿水位後水位高 (mm)',
+            '加蒸發皿水位後水溫 (°C)',
+            '減蒸發皿水位後水位高 (mm)',
+            '減蒸發皿水位後水溫 (°C)',
+            '備註'
+        ])
+        
+        # Write data rows
+        for observation in observations:
+            observer = db.query(User).filter(User.id == observation.observer_id).first()
+            observer_name = observer.formal_name or observer.display_name or observer.google_name if observer else None
+            
+            writer.writerow([
+                observation.observation_time.strftime('%Y-%m-%d %H:%M:%S') if observation.observation_time else '',
+                observer_name or '',
+                observation.temperature if observation.temperature is not None else '',
+                observation.wet_bulb_temperature if observation.wet_bulb_temperature is not None else '',
+                observation.precipitation if observation.precipitation is not None else '',
+                observation.evaporation_pan_temp if observation.evaporation_pan_temp is not None else '',
+                observation.current_evaporation_level if observation.current_evaporation_level is not None else '',
+                observation.current_weather_code if observation.current_weather_code is not None else '',
+                observation.total_cloud_amount if observation.total_cloud_amount is not None else '',
+                observation.high_cloud_type_code if observation.high_cloud_type_code is not None else '',
+                observation.high_cloud_amount if observation.high_cloud_amount is not None else '',
+                observation.middle_cloud_type_code if observation.middle_cloud_type_code is not None else '',
+                observation.middle_cloud_amount if observation.middle_cloud_amount is not None else '',
+                observation.low_cloud_amount if observation.low_cloud_amount is not None else '',
+                observation.cleaned_evaporation_level if observation.cleaned_evaporation_level is not None else '',
+                observation.cleaned_evaporation_temp if observation.cleaned_evaporation_temp is not None else '',
+                observation.added_evaporation_level if observation.added_evaporation_level is not None else '',
+                observation.added_evaporation_temp if observation.added_evaporation_temp is not None else '',
+                observation.reduced_evaporation_level if observation.reduced_evaporation_level is not None else '',
+                observation.reduced_evaporation_temp if observation.reduced_evaporation_temp is not None else '',
+                observation.notes or ''
+            ])
+        
+        output.seek(0)
+        
+        # Generate filename with date range
+        if start_date and end_date:
+            filename = f"weather_observations_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.csv"
+        elif start_date:
+            filename = f"weather_observations_from_{start_date.strftime('%Y%m%d')}.csv"
+        elif end_date:
+            filename = f"weather_observations_until_{end_date.strftime('%Y%m%d')}.csv"
+        else:
+            filename = f"weather_observations_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        # Create the response with proper headers
+        response_content = output.getvalue().encode('utf-8-sig')  # UTF-8 BOM for Excel compatibility
+        
+        return StreamingResponse(
+            io.BytesIO(response_content),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{filename}\"",
+                "Content-Length": str(len(response_content))
+            }
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"CSV export failed: {str(e)}"
+        )
