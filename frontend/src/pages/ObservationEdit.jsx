@@ -246,9 +246,337 @@ const ObservationEdit = () => {
             </Paper>
           </Grid>
 
-          {/* Similar sections as DataEntryForm - abbreviated for space */}
-          {/* You can copy the rest of the form sections from DataEntryForm.jsx */}
-          
+          {/* Evaporation Pan */}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                蒸發皿資料
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="evaporation_pan_temp"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.evaporationPanTemp')}
+                        type="number"
+                        inputProps={{ step: 0.1 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="current_evaporation_level"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.currentEvaporationLevel')}
+                        type="number"
+                        inputProps={{ step: 0.1, min: 0 }}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* Weather and Clouds */}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                天氣與雲況
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="current_weather_code"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.currentWeatherCode')}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Controller
+                    name="total_cloud_amount"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.totalCloudAmount')}
+                        type="number"
+                        inputProps={{ min: 0, max: 8 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                
+                {/* High Clouds */}
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="high_cloud_type_code"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.highCloudTypeCode')}
+                        type="number"
+                        inputProps={{ min: 0, max: 9 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="high_cloud_amount"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.highCloudAmount')}
+                        type="number"
+                        inputProps={{ min: 0, max: 8 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                
+                {/* Middle Clouds */}
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="middle_cloud_type_code"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.middleCloudTypeCode')}
+                        type="number"
+                        inputProps={{ min: 0, max: 9 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="middle_cloud_amount"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.middleCloudAmount')}
+                        type="number"
+                        inputProps={{ min: 0, max: 8 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                
+                {/* Low Clouds */}
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="low_cloud_type_code"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.lowCloudTypeCode')}
+                        type="number"
+                        inputProps={{ min: 0, max: 9 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Controller
+                    name="low_cloud_amount"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label={t('observation.lowCloudAmount')}
+                        type="number"
+                        inputProps={{ min: 0, max: 8 }}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* Conditional Data Sections */}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('observation.conditionalData')}
+              </Typography>
+              
+              {/* Cleaned Evaporation Pan */}
+              <Card sx={{ mb: 2 }}>
+                <CardHeader
+                  title={
+                    <Controller
+                      name="has_cleaned_evaporation_pan"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label={t('observation.cleanedEvaporationData')}
+                        />
+                      )}
+                    />
+                  }
+                />
+                <Collapse in={watchCleanedPan}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="cleaned_evaporation_level"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.cleanedEvaporationLevel')}
+                              type="number"
+                              inputProps={{ step: 0.1, min: 0 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="cleaned_evaporation_temp"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.cleanedEvaporationTemp')}
+                              type="number"
+                              inputProps={{ step: 0.1 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Collapse>
+              </Card>
+
+              {/* Added Evaporation Water */}
+              <Card sx={{ mb: 2 }}>
+                <CardHeader
+                  title={
+                    <Controller
+                      name="has_added_evaporation_water"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label={t('observation.addedEvaporationData')}
+                        />
+                      )}
+                    />
+                  }
+                />
+                <Collapse in={watchAddedWater}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="added_evaporation_level"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.addedEvaporationLevel')}
+                              type="number"
+                              inputProps={{ step: 0.1, min: 0 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="added_evaporation_temp"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.addedEvaporationTemp')}
+                              type="number"
+                              inputProps={{ step: 0.1 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Collapse>
+              </Card>
+
+              {/* Reduced Evaporation Water */}
+              <Card sx={{ mb: 2 }}>
+                <CardHeader
+                  title={
+                    <Controller
+                      name="has_reduced_evaporation_water"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label={t('observation.reducedEvaporationData')}
+                        />
+                      )}
+                    />
+                  }
+                />
+                <Collapse in={watchReducedWater}>
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="reduced_evaporation_level"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.reducedEvaporationLevel')}
+                              type="number"
+                              inputProps={{ step: 0.1, min: 0 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Controller
+                          name="reduced_evaporation_temp"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              label={t('observation.reducedEvaporationTemp')}
+                              type="number"
+                              inputProps={{ step: 0.1 }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Collapse>
+              </Card>
+            </Paper>
+          </Grid>
+
           {/* Notes */}
           <Grid item xs={12}>
             <Paper sx={{ p: 3 }}>

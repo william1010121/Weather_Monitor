@@ -17,12 +17,18 @@ import {
   Alert,
   TablePagination,
   Fab,
+  Collapse,
+  Grid,
+  Card,
+  CardContent,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -40,6 +46,7 @@ const ObservationsList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
   useEffect(() => {
     fetchObservations();
@@ -86,6 +93,23 @@ const ObservationsList = () => {
     setPage(0);
   };
 
+  const toggleRowExpansion = (observationId) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(observationId)) {
+      newExpandedRows.delete(observationId);
+    } else {
+      newExpandedRows.add(observationId);
+    }
+    setExpandedRows(newExpandedRows);
+  };
+
+  const formatValue = (value, unit = '', decimals = 1) => {
+    if (value != null && typeof value === 'number') {
+      return `${value.toFixed(decimals)}${unit}`;
+    }
+    return '無資料';
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -128,6 +152,7 @@ const ObservationsList = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell>展開</TableCell>
                   <TableCell>{t('observation.observationTime')}</TableCell>
                   <TableCell>{t('observation.temperature')}</TableCell>
                   <TableCell>{t('observation.wetBulbTemperature')}</TableCell>
@@ -138,87 +163,218 @@ const ObservationsList = () => {
               </TableHead>
               <TableBody>
                 {observations.map((observation) => (
-                  <TableRow key={observation.id} hover>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2">
-                          {dayjs(observation.observation_time).format('YYYY-MM-DD')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {dayjs(observation.observation_time).format('HH:mm')}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      {observation.temperature != null && typeof observation.temperature === 'number' ? (
-                        <Chip
-                          label={`${observation.temperature.toFixed(1)}°C`}
-                          color="error"
-                          variant="outlined"
-                          size="small"
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          無資料
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {observation.wet_bulb_temperature != null && typeof observation.wet_bulb_temperature === 'number' ? (
-                        <Chip
-                          label={`${observation.wet_bulb_temperature.toFixed(1)}°C`}
-                          color="warning"
-                          variant="outlined"
-                          size="small"
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          無資料
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {observation.precipitation != null && typeof observation.precipitation === 'number' ? (
-                        <Chip
-                          label={`${observation.precipitation.toFixed(1)}mm`}
-                          color="info"
-                          variant="outlined"
-                          size="small"
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          無資料
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {observation.current_evaporation_level != null && typeof observation.current_evaporation_level === 'number' ? (
-                        `${observation.current_evaporation_level.toFixed(1)}mm`
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          無資料
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                  <React.Fragment key={observation.id}>
+                    <TableRow hover>
+                      <TableCell>
                         <IconButton
                           size="small"
-                          color="primary"
-                          onClick={() => navigate(`/observations/${observation.id}/edit`)}
+                          onClick={() => toggleRowExpansion(observation.id)}
                         >
-                          <EditIcon />
+                          {expandedRows.has(observation.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                         </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(observation.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2">
+                            {dayjs(observation.observation_time).format('YYYY-MM-DD')}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {dayjs(observation.observation_time).format('HH:mm')}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {observation.temperature != null && typeof observation.temperature === 'number' ? (
+                          <Chip
+                            label={`${observation.temperature.toFixed(1)}°C`}
+                            color="error"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            無資料
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {observation.wet_bulb_temperature != null && typeof observation.wet_bulb_temperature === 'number' ? (
+                          <Chip
+                            label={`${observation.wet_bulb_temperature.toFixed(1)}°C`}
+                            color="warning"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            無資料
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {observation.precipitation != null && typeof observation.precipitation === 'number' ? (
+                          <Chip
+                            label={`${observation.precipitation.toFixed(1)}mm`}
+                            color="info"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            無資料
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {observation.current_evaporation_level != null && typeof observation.current_evaporation_level === 'number' ? (
+                          `${observation.current_evaporation_level.toFixed(1)}mm`
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            無資料
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => navigate(`/observations/${observation.id}/edit`)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(observation.id)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                    
+                    {/* Expanded Row Content */}
+                    <TableRow>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+                        <Collapse in={expandedRows.has(observation.id)} timeout="auto" unmountOnExit>
+                          <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                              詳細觀測資料
+                            </Typography>
+                            <Grid container spacing={2}>
+                              {/* Basic Information */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>基本資訊</Typography>
+                                    <Typography variant="body2">觀測人員: {observation.observer_name || '無資料'}</Typography>
+                                    <Typography variant="body2">觀測時間: {dayjs(observation.observation_time).format('YYYY-MM-DD HH:mm')}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Temperature Data */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>溫度資料</Typography>
+                                    <Typography variant="body2">現在溫度: {formatValue(observation.temperature, '°C')}</Typography>
+                                    <Typography variant="body2">濕球溫度: {formatValue(observation.wet_bulb_temperature, '°C')}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Evaporation Data */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>蒸發皿資料</Typography>
+                                    <Typography variant="body2">蒸發皿水溫: {formatValue(observation.evaporation_pan_temp, '°C')}</Typography>
+                                    <Typography variant="body2">現在水位高: {formatValue(observation.current_evaporation_level, 'mm')}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Weather Data */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>天氣資料</Typography>
+                                    <Typography variant="body2">降水量: {formatValue(observation.precipitation, 'mm')}</Typography>
+                                    <Typography variant="body2">現在天氣代碼: {observation.current_weather_code || '無資料'}</Typography>
+                                    <Typography variant="body2">總雲量: {formatValue(observation.total_cloud_amount, '', 0)}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Cloud Data */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>雲況資料</Typography>
+                                    <Typography variant="body2">高雲雲種代碼: {formatValue(observation.high_cloud_type_code, '', 0)}</Typography>
+                                    <Typography variant="body2">高雲雲量: {formatValue(observation.high_cloud_amount, '', 0)}</Typography>
+                                    <Typography variant="body2">中雲雲種代碼: {formatValue(observation.middle_cloud_type_code, '', 0)}</Typography>
+                                    <Typography variant="body2">中雲雲量: {formatValue(observation.middle_cloud_amount, '', 0)}</Typography>
+                                    <Typography variant="body2">低雲雲種代碼: {formatValue(observation.low_cloud_type_code, '', 0)}</Typography>
+                                    <Typography variant="body2">低雲雲量: {formatValue(observation.low_cloud_amount, '', 0)}</Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Conditional Data */}
+                              <Grid item xs={12} md={6}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="subtitle2" gutterBottom>條件式資料</Typography>
+                                    {observation.has_cleaned_evaporation_pan && (
+                                      <>
+                                        <Typography variant="body2">已洗蒸發皿</Typography>
+                                        <Typography variant="body2">- 洗後水位: {formatValue(observation.cleaned_evaporation_level, 'mm')}</Typography>
+                                        <Typography variant="body2">- 洗後水溫: {formatValue(observation.cleaned_evaporation_temp, '°C')}</Typography>
+                                      </>
+                                    )}
+                                    {observation.has_added_evaporation_water && (
+                                      <>
+                                        <Typography variant="body2">已加蒸發皿水</Typography>
+                                        <Typography variant="body2">- 加水後水位: {formatValue(observation.added_evaporation_level, 'mm')}</Typography>
+                                        <Typography variant="body2">- 加水後水溫: {formatValue(observation.added_evaporation_temp, '°C')}</Typography>
+                                      </>
+                                    )}
+                                    {observation.has_reduced_evaporation_water && (
+                                      <>
+                                        <Typography variant="body2">已減蒸發皿水</Typography>
+                                        <Typography variant="body2">- 減水後水位: {formatValue(observation.reduced_evaporation_level, 'mm')}</Typography>
+                                        <Typography variant="body2">- 減水後水溫: {formatValue(observation.reduced_evaporation_temp, '°C')}</Typography>
+                                      </>
+                                    )}
+                                    {!observation.has_cleaned_evaporation_pan && 
+                                     !observation.has_added_evaporation_water && 
+                                     !observation.has_reduced_evaporation_water && (
+                                      <Typography variant="body2" color="text.secondary">無條件式資料</Typography>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                              
+                              {/* Notes */}
+                              {observation.notes && (
+                                <Grid item xs={12}>
+                                  <Card variant="outlined">
+                                    <CardContent>
+                                      <Typography variant="subtitle2" gutterBottom>備註</Typography>
+                                      <Typography variant="body2">{observation.notes}</Typography>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              )}
+                            </Grid>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
