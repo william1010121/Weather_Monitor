@@ -52,7 +52,7 @@ const Download = () => {
       const response = await observationsAPI.exportCSV(params);
       
       // Create blob URL and trigger download
-      const blob = new Blob([response.data            <li>所有用戶都可以下載完整的觀測資料</li>, { type: 'text/csv' });
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

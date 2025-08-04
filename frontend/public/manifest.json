@@ -1,6 +1,6 @@
 {
-  "short_name": "氣象觀測器",
-  "name": "人工氣象觀測紀錄器",
+  "short_name": "中大測站",
+  "name": "中大測站資料記錄",
   "icons": [
     {
       "src": "favicon.ico",

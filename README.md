@@ -1,4 +1,4 @@
-# Weather Observation Logger / 人工氣象觀測紀錄器
+# Weather Observation Logger / 中大測站資料記錄
 
 A comprehensive weather observation logging system with Chinese UI support for manual weather data collection and management.
 
