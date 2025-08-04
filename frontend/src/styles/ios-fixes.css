@@ -1,0 +1,97 @@
+/* iOS-specific CSS fixes */
+
+/* Ensure proper viewport scaling on iOS */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Improve font rendering on iOS */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-smoothing: antialiased;
+}
+
+/* Fix iOS Safari flexbox issues */
+.MuiBox-root,
+.MuiContainer-root,
+.MuiGrid-container {
+  -webkit-flex-shrink: 1;
+  flex-shrink: 1;
+}
+
+/* Ensure proper touch targets on iOS */
+.MuiButtonBase-root {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Fix iOS form input styling */
+.MuiInputBase-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 4px;
+}
+
+/* Ensure proper scrolling on iOS */
+.MuiPaper-root,
+.MuiCard-root {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix iOS Safari grid issues */
+.MuiGrid-item {
+  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+}
+
+/* Improve performance on iOS */
+.MuiCard-root,
+.MuiPaper-root {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Fix iOS Safari date picker issues */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-height: 44px;
+}
+
+/* Ensure proper text rendering on iOS */
+.MuiTypography-root {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Fix iOS Safari button styling */
+.MuiButton-root {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+}
+
+/* Ensure proper spacing on iOS devices */
+@media screen and (-webkit-min-device-pixel-ratio: 2) {
+  .MuiContainer-root {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Fix iOS Safari 100vh issue */
+.MuiBox-root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}

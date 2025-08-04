@@ -35,12 +35,15 @@
     "production": [
       ">0.2%",
       "not dead",
-      "not op_mini all"
+      "not op_mini all",
+      "ios >= 12",
+      "safari >= 12"
     ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
-      "last 1 safari version"
+      "last 2 safari version",
+      "ios >= 12"
     ]
   },
   "devDependencies": {
