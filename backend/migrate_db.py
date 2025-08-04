@@ -57,13 +57,13 @@ def create_admin_user():
     try:
         # Check if admin user already exists
         admin_user = db.query(User).filter(
-            (User.email == "admin") | (User.email == "admin@weather-logger.local")
+            (User.email == "admin") | (User.email == "admin@weather-logger.com")
         ).first()
         
         if not admin_user:
             # Create default admin user
             admin_user = User(
-                email="admin@weather-logger.local",
+                email="admin@weather-logger.com",
                 display_name="Administrator",
                 google_name="Administrator",
                 google_id=None,  # No Google ID for admin
