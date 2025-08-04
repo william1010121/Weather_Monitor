@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: weather-app
+
+namespace: weather-app
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - configmap.yaml
+  - postgres.yaml
+  - backend.yaml
+  - frontend.yaml
+  - ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/name: weather-app
+  app.kubernetes.io/part-of: weather-app
+
+images:
+  - name: weather-app-backend
+    newTag: latest
+  - name: weather-app-frontend
+    newTag: latest
