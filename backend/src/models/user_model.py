@@ -9,6 +9,7 @@ class User(Base):
     google_id = Column(String, unique=True, index=True, nullable=True)  # Made nullable for admin users
     email = Column(String, unique=True, index=True, nullable=False)
     display_name = Column(String, nullable=True)  # English display name set by admin
+    formal_name = Column(String, nullable=True)  # Formal name set by user themselves
     google_name = Column(String, nullable=True)  # Name from Google profile - nullable for admin users
     profile_picture = Column(String, nullable=True)
     is_admin = Column(Boolean, default=False, nullable=False)

@@ -65,7 +65,7 @@ async def get_observations(
     for observation in observations:
         obs_dict = observation.__dict__.copy()
         observer = db.query(User).filter(User.id == observation.observer_id).first()
-        obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+        obs_dict['observer_name'] = observer.formal_name or observer.display_name or observer.google_name if observer else None
         result.append(ObservationResponse(**obs_dict))
     
     return result
@@ -105,9 +105,9 @@ async def get_dashboard_data(
         .scalar()
     )
     
-    # Get observer name
+    # Get observer name (prioritize formal_name set by user)
     observer = db.query(User).filter(User.id == latest_observation.observer_id).first()
-    observer_name = observer.display_name or observer.google_name if observer else None
+    observer_name = observer.formal_name or observer.display_name or observer.google_name if observer else None
     
     return DashboardData(
         observation_time=latest_observation.observation_time,
@@ -144,7 +144,7 @@ async def get_observation(
     # Add observer name
     obs_dict = observation.__dict__.copy()
     observer = db.query(User).filter(User.id == observation.observer_id).first()
-    obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+    obs_dict['observer_name'] = observer.formal_name or observer.display_name or observer.google_name if observer else None
     
     return ObservationResponse(**obs_dict)
 
@@ -182,7 +182,7 @@ async def update_observation(
     # Add observer name
     obs_dict = observation.__dict__.copy()
     observer = db.query(User).filter(User.id == observation.observer_id).first()
-    obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+    obs_dict['observer_name'] = observer.formal_name or observer.display_name or observer.google_name if observer else None
     
     return ObservationResponse(**obs_dict)
 

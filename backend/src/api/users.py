@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from ..core.database import get_db
 from ..models.user_model import User
-from ..schemas.user_schemas import UserResponse, UserUpdate, UserSummary
+from ..schemas.user_schemas import UserResponse, UserUpdate, UserSummary, UserSettingsUpdate
 from ..middleware.auth_middleware import get_current_active_user, get_current_admin_user
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -11,6 +11,21 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_active_user)):
     """Get current user information"""
+    return current_user
+
+@router.put("/me/settings", response_model=UserResponse)
+async def update_user_settings(
+    settings_update: UserSettingsUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user settings (formal name)"""
+    # Update formal name if provided
+    if settings_update.formal_name is not None:
+        current_user.formal_name = settings_update.formal_name
+    
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 @router.put("/me", response_model=UserResponse)

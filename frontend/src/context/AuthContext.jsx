@@ -111,6 +111,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserSettings = async (settingsData) => {
+    try {
+      const response = await userAPI.updateUserSettings(settingsData);
+      setUser(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update user settings:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
@@ -119,6 +131,7 @@ export const AuthProvider = ({ children }) => {
     adminLogin,
     logout,
     refreshUser,
+    updateUserSettings,
     isAdmin: user?.is_admin || false,
   };
 

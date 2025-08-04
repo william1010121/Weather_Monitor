@@ -50,6 +50,7 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getCurrentUser: () => api.get('/users/me'),
+  updateUserSettings: (settingsData) => api.put('/users/me/settings', settingsData),
   getUsers: () => api.get('/users/'),
   getUser: (userId) => api.get(`/users/${userId}`),
   updateUser: (userId, userData) => api.put(`/users/${userId}`, userData),

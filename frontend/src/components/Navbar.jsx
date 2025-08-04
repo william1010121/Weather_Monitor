@@ -19,6 +19,7 @@ import {
   List as ListIcon,
   AdminPanelSettings as AdminIcon,
   AccountCircle,
+  Settings as SettingsIcon,
   Logout,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -117,7 +118,7 @@ const Navbar = () => {
             {user?.profile_picture ? (
               <Avatar
                 src={user.profile_picture}
-                alt={user.display_name || user.google_name}
+                alt={user.formal_name || user.display_name || user.google_name}
                 sx={{ width: 32, height: 32 }}
               />
             ) : (
@@ -142,7 +143,7 @@ const Navbar = () => {
             <MenuItem disabled>
               <Box>
                 <Typography variant="subtitle2">
-                  {user?.display_name || user?.google_name}
+                  {user?.formal_name || user?.display_name || user?.google_name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {user?.email}
@@ -155,6 +156,10 @@ const Navbar = () => {
               </Box>
             </MenuItem>
             <Divider />
+            <MenuItem onClick={() => { handleProfileMenuClose(); navigate('/settings'); }}>
+              <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
+              個人設定
+            </MenuItem>
             <MenuItem onClick={handleLogout}>
               <Logout fontSize="small" sx={{ mr: 1 }} />
               {t('auth.logout')}

@@ -5,6 +5,7 @@ from typing import Optional
 class UserBase(BaseModel):
     email: EmailStr
     display_name: Optional[str] = None
+    formal_name: Optional[str] = None
     google_name: Optional[str] = None
     profile_picture: Optional[str] = None
     is_active: bool = True
@@ -20,6 +21,9 @@ class UserUpdate(BaseModel):
     display_name: Optional[str] = None
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
+
+class UserSettingsUpdate(BaseModel):
+    formal_name: Optional[str] = None
 
 class UserResponse(UserBase):
     id: int
