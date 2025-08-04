@@ -1,0 +1,117 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging
+        - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+    
+    - name: Configure kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha
+    
+    - name: Update image tags in kustomization
+      run: |
+        ENVIRONMENT=${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+        OVERLAY_PATH="k8s/overlays/$ENVIRONMENT"
+        
+        # Update image tags
+        NEW_TAG="${{ github.sha }}"
+        sed -i "s/newTag: .*/newTag: $NEW_TAG/" $OVERLAY_PATH/kustomization.yaml
+        
+        # Update image repository
+        sed -i "s|image: weather-app-backend|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}|" $OVERLAY_PATH/kustomization.yaml
+        sed -i "s|image: weather-app-frontend|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}|" $OVERLAY_PATH/kustomization.yaml
+    
+    - name: Update secrets
+      env:
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      run: |
+        # Update secrets with actual values
+        kubectl create secret generic weather-app-secrets \
+          --from-literal=google-client-id="$GOOGLE_CLIENT_ID" \
+          --from-literal=google-client-secret="$GOOGLE_CLIENT_SECRET" \
+          --from-literal=secret-key="$SECRET_KEY" \
+          --from-literal=db-password="$DB_PASSWORD" \
+          --dry-run=client -o yaml | kubectl apply -f -
+        
+        kubectl create secret generic postgres-secret \
+          --from-literal=postgres-password="$DB_PASSWORD" \
+          --from-literal=postgres-user="weather_user" \
+          --from-literal=postgres-db="weather_db" \
+          --dry-run=client -o yaml | kubectl apply -f -
+    
+    - name: Deploy to Kubernetes
+      run: |
+        ENVIRONMENT=${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+        kubectl apply -k k8s/overlays/$ENVIRONMENT
+    
+    - name: Wait for deployment
+      run: |
+        ENVIRONMENT=${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+        
+        echo "Waiting for deployments to be ready..."
+        kubectl wait --for=condition=available --timeout=300s deployment/postgres -n weather-app || true
+        kubectl wait --for=condition=available --timeout=300s deployment/backend -n weather-app || true
+        kubectl wait --for=condition=available --timeout=300s deployment/frontend -n weather-app || true
+    
+    - name: Verify deployment
+      run: |
+        echo "Deployment status:"
+        kubectl get pods -n weather-app
+        kubectl get services -n weather-app
+        kubectl get ingress -n weather-app || echo "No ingress configured"
