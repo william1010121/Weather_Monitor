@@ -71,6 +71,11 @@ export const observationsAPI = {
   getDashboardData: () => api.get('/observations/dashboard'),
   getUserObservations: (userId, params) => 
     api.get(`/observations/user/${userId}`, { params }),
+  exportCSV: (params) => 
+    api.get('/observations/export/csv', { 
+      params,
+      responseType: 'blob' // Important for file downloads
+    }),
 };
 
 export default api;

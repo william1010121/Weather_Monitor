@@ -10,6 +10,7 @@ import DataEntryForm from './pages/DataEntryForm';
 import ObservationsList from './pages/ObservationsList';
 import ObservationEdit from './pages/ObservationEdit';
 import Settings from './pages/Settings';
+import Download from './pages/Download';
 import AdminPanel from './pages/AdminPanel';
 import AuthCallback from './pages/AuthCallback';
 
@@ -68,6 +69,7 @@ function App() {
                   <Route path="/observations" element={<ObservationsList />} />
                   <Route path="/observations/:id/edit" element={<ObservationEdit />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/download" element={<Download />} />
                   <Route
                     path="/admin"
                     element={

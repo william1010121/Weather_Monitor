@@ -17,6 +17,7 @@ import {
   Dashboard as DashboardIcon,
   Add as AddIcon,
   List as ListIcon,
+  Download as DownloadIcon,
   AdminPanelSettings as AdminIcon,
   AccountCircle,
   Settings as SettingsIcon,
@@ -60,6 +61,11 @@ const Navbar = () => {
       label: t('navigation.observations'),
       path: '/observations',
       icon: <ListIcon />,
+    },
+    {
+      label: '資料下載',
+      path: '/download',
+      icon: <DownloadIcon />,
     },
   ];
 

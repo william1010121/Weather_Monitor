@@ -259,9 +259,8 @@ async def export_observations_csv(
         if end_date:
             query = query.filter(Observation.observation_time <= end_date)
         
-        # Filter by observer if not admin
-        if not current_user.is_admin:
-            query = query.filter(Observation.observer_id == current_user.id)
+        # Remove user filtering - all authenticated users can access all data
+        # No filtering by observer_id for any user
         
         observations = query.order_by(desc(Observation.observation_time)).all()
         
