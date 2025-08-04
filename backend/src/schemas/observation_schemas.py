@@ -82,6 +82,7 @@ class ObservationUpdate(BaseModel):
 class ObservationResponse(ObservationBase):
     id: int
     observer_id: int
+    observer_name: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     

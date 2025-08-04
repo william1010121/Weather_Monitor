@@ -33,7 +33,7 @@ async def create_observation(
     db.refresh(db_observation)
     return db_observation
 
-@router.get("/", response_model=List[ObservationSummary])
+@router.get("/", response_model=List[ObservationResponse])
 async def get_observations(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -44,7 +44,7 @@ async def get_observations(
     db: Session = Depends(get_db)
 ):
     """Get list of observations with filtering"""
-    query = db.query(Observation)
+    query = db.query(Observation).join(User, Observation.observer_id == User.id)
     
     # Filter by date range if provided
     if start_date:
@@ -59,7 +59,16 @@ async def get_observations(
         query = query.filter(Observation.observer_id == observer_id)
     
     observations = query.order_by(desc(Observation.observation_time)).offset(skip).limit(limit).all()
-    return observations
+    
+    # Add observer name to each observation
+    result = []
+    for observation in observations:
+        obs_dict = observation.__dict__.copy()
+        observer = db.query(User).filter(User.id == observation.observer_id).first()
+        obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+        result.append(ObservationResponse(**obs_dict))
+    
+    return result
 
 @router.get("/dashboard", response_model=DashboardData)
 async def get_dashboard_data(
@@ -132,7 +141,12 @@ async def get_observation(
             detail="Not enough permissions"
         )
     
-    return observation
+    # Add observer name
+    obs_dict = observation.__dict__.copy()
+    observer = db.query(User).filter(User.id == observation.observer_id).first()
+    obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+    
+    return ObservationResponse(**obs_dict)
 
 @router.put("/{observation_id}", response_model=ObservationResponse)
 async def update_observation(
@@ -164,7 +178,13 @@ async def update_observation(
     
     db.commit()
     db.refresh(observation)
-    return observation
+    
+    # Add observer name
+    obs_dict = observation.__dict__.copy()
+    observer = db.query(User).filter(User.id == observation.observer_id).first()
+    obs_dict['observer_name'] = observer.display_name or observer.google_name if observer else None
+    
+    return ObservationResponse(**obs_dict)
 
 @router.delete("/{observation_id}")
 async def delete_observation(
