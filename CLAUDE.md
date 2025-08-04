@@ -153,3 +153,11 @@ These considerations are universal and still apply.
   * **Configuration:** **Never commit secrets** (`.env` files, API keys) to Git. Use environment variables in your hosting service.
   * **Timeline Estimate:** For a single developer, this project could still take **4-8 weeks**. AI assistance on boilerplate and debugging can shorten this.
   * **AI-Powered Iteration:** Use LLMs to review code, generate documentation, and suggest refactoring improvements. **Prompt:** "Review this React form component. How can I improve its structure and handle state more efficiently?"
+
+-----
+
+### **Development Environment Notes**
+
+  * Always use `uv` as the Python environment management tool
+  * Use `uv add` to install packages
+  * Use `uv run` to execute Python scripts and manage the project environment
