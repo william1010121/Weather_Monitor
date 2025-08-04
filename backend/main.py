@@ -2,13 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from src.core.config import settings
-from src.core.database import engine, Base
+from src.core.database import engine, Base, init_default_admin
 from src.api import auth_router, observations_router, users_router
 
 load_dotenv()
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Initialize default admin user
+init_default_admin()
 
 app = FastAPI(
     title="Weather Observation Logger API",

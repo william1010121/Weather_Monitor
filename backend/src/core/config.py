@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from pydantic import Field
+from typing import Optional, Union
 import os
 
 
@@ -17,15 +18,21 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
-    # CORS
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    # CORS - handle as string in env, convert to list in property
+    allowed_origins_str: str = Field(default="http://localhost:3000", alias="ALLOWED_ORIGINS")
     
     # Environment
     environment: str = "development"
     debug: bool = True
 
-    class Config:
-        env_file = ".env"
+    @property
+    def allowed_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.allowed_origins_str.split(',')]
+
+    model_config = {
+        "env_file": ".env",
+        "populate_by_name": True
+    }
 
 
 settings = Settings()

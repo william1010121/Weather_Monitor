@@ -6,9 +6,9 @@ from typing import Dict, Any
 import httpx
 from ..core.database import get_db
 from ..core.config import settings
-from ..core.security import create_access_token
+from ..core.security import create_access_token, verify_password, get_password_hash
 from ..models.user_model import User
-from ..schemas.user_schemas import UserResponse
+from ..schemas.user_schemas import UserResponse, AdminLogin
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -149,3 +149,51 @@ async def verify_google_token(token_data: Dict[str, str], db: Session = Depends(
 async def logout():
     """Logout (client should remove the token)"""
     return {"message": "Successfully logged out"}
+
+@router.post("/admin/login")
+async def admin_login(login_data: AdminLogin, db: Session = Depends(get_db)):
+    """Admin login with username and password"""
+    try:
+        # For admin login, we check email, display_name, and also allow 'admin' as shortcut
+        if login_data.username == "admin":
+            # Special case: allow 'admin' as username for any admin user
+            user = db.query(User).filter(
+                User.is_admin == True,
+                User.password_hash.isnot(None)
+            ).first()
+        else:
+            # Regular case: match by email or display_name
+            user = db.query(User).filter(
+                (User.email == login_data.username) | (User.display_name == login_data.username),
+                User.is_admin == True,
+                User.password_hash.isnot(None)
+            ).first()
+        
+        if not user or not verify_password(login_data.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive"
+            )
+        
+        # Create access token
+        access_token = create_access_token(subject=user.id)
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": UserResponse.from_orm(user)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Login failed: {str(e)}"
+        )

@@ -5,12 +5,16 @@ from typing import Optional
 class UserBase(BaseModel):
     email: EmailStr
     display_name: Optional[str] = None
-    google_name: str
+    google_name: Optional[str] = None
     profile_picture: Optional[str] = None
     is_active: bool = True
 
 class UserCreate(UserBase):
-    google_id: str
+    google_id: Optional[str] = None
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
 
 class UserUpdate(BaseModel):
     display_name: Optional[str] = None
@@ -19,7 +23,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     id: int
-    google_id: str
+    google_id: Optional[str] = None
     is_admin: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
