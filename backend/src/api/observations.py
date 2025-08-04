@@ -55,10 +55,8 @@ async def get_observations(
     if end_date:
         query = query.filter(Observation.observation_time <= end_date)
     
-    # Filter by observer if provided (admin only can see all, users see their own)
-    if not current_user.is_admin:
-        query = query.filter(Observation.observer_id == current_user.id)
-    elif observer_id:
+    # Filter by observer if provided - all users can see all observations
+    if observer_id:
         query = query.filter(Observation.observer_id == observer_id)
     
     observations = query.order_by(desc(Observation.observation_time)).offset(skip).limit(limit).all()
@@ -137,12 +135,7 @@ async def get_observation(
             detail="Observation not found"
         )
     
-    # Check permissions - admin can see all, users can only see their own
-    if not current_user.is_admin and observation.observer_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
+    # All authenticated users can view any observation, but only owners/admins can modify
     
     # Add observer name
     obs_dict = observation.__dict__.copy()

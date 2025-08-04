@@ -39,7 +39,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const ObservationsList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [observations, setObservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -158,6 +158,7 @@ const ObservationsList = () => {
                   <TableCell>{t('observation.wetBulbTemperature')}</TableCell>
                   <TableCell>{t('observation.precipitation')}</TableCell>
                   <TableCell>蒸發皿水位</TableCell>
+                  <TableCell>觀測者</TableCell>
                   <TableCell>操作</TableCell>
                 </TableRow>
               </TableHead>
@@ -181,6 +182,19 @@ const ObservationsList = () => {
                           <Typography variant="caption" color="text.secondary">
                             {dayjs(observation.observation_time).format('HH:mm')}
                           </Typography>
+                          {observation.observer_name && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              觀測者: {observation.observer_name}
+                              {observation.observer_id === user?.id && (
+                                <Chip 
+                                  label="我的" 
+                                  size="small" 
+                                  color="primary" 
+                                  sx={{ ml: 0.5, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Typography>
+                          )}
                         </Box>
                       </TableCell>
                       <TableCell>
@@ -235,11 +249,26 @@ const ObservationsList = () => {
                         )}
                       </TableCell>
                       <TableCell>
+                        <Typography variant="body2" noWrap>
+                          {observation.observer_name || '無資料'}
+                          {observation.observer_id === user?.id && (
+                            <Chip 
+                              label="我的" 
+                              size="small" 
+                              color="primary" 
+                              sx={{ ml: 0.5 }}
+                            />
+                          )}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <IconButton
                             size="small"
                             color="primary"
                             onClick={() => navigate(`/observations/${observation.id}/edit`)}
+                            disabled={!isAdmin && observation.observer_id !== user?.id}
+                            title={!isAdmin && observation.observer_id !== user?.id ? "只能編輯自己的紀錄" : "編輯紀錄"}
                           >
                             <EditIcon />
                           </IconButton>
@@ -247,6 +276,8 @@ const ObservationsList = () => {
                             size="small"
                             color="error"
                             onClick={() => handleDelete(observation.id)}
+                            disabled={!isAdmin && observation.observer_id !== user?.id}
+                            title={!isAdmin && observation.observer_id !== user?.id ? "只能刪除自己的紀錄" : "刪除紀錄"}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -268,7 +299,17 @@ const ObservationsList = () => {
                                 <Card variant="outlined">
                                   <CardContent>
                                     <Typography variant="subtitle2" gutterBottom>基本資訊</Typography>
-                                    <Typography variant="body2">觀測人員: {observation.observer_name || '無資料'}</Typography>
+                                    <Typography variant="body2">
+                                      觀測人員: {observation.observer_name || '無資料'}
+                                      {observation.observer_id === user?.id && (
+                                        <Chip 
+                                          label="我的紀錄" 
+                                          size="small" 
+                                          color="primary" 
+                                          sx={{ ml: 1 }}
+                                        />
+                                      )}
+                                    </Typography>
                                     <Typography variant="body2">觀測時間: {dayjs(observation.observation_time).format('YYYY-MM-DD HH:mm')}</Typography>
                                   </CardContent>
                                 </Card>
