@@ -150,7 +150,7 @@ const ObservationsList = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      {observation.temperature !== null ? (
+                      {observation.temperature != null && typeof observation.temperature === 'number' ? (
                         <Chip
                           label={`${observation.temperature.toFixed(1)}°C`}
                           color="error"
@@ -164,7 +164,7 @@ const ObservationsList = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {observation.wet_bulb_temperature !== null ? (
+                      {observation.wet_bulb_temperature != null && typeof observation.wet_bulb_temperature === 'number' ? (
                         <Chip
                           label={`${observation.wet_bulb_temperature.toFixed(1)}°C`}
                           color="warning"
@@ -178,7 +178,7 @@ const ObservationsList = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {observation.precipitation !== null ? (
+                      {observation.precipitation != null && typeof observation.precipitation === 'number' ? (
                         <Chip
                           label={`${observation.precipitation.toFixed(1)}mm`}
                           color="info"
@@ -192,7 +192,7 @@ const ObservationsList = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {observation.current_evaporation_level !== null ? (
+                      {observation.current_evaporation_level != null && typeof observation.current_evaporation_level === 'number' ? (
                         `${observation.current_evaporation_level.toFixed(1)}mm`
                       ) : (
                         <Typography variant="caption" color="text.secondary">
