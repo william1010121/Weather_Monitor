@@ -8,8 +8,11 @@ import {
   Button,
   Container,
   Alert,
+  TextField,
+  Divider,
+  Link,
 } from '@mui/material';
-import { Google as GoogleIcon } from '@mui/icons-material';
+import { Google as GoogleIcon, AdminPanelSettings as AdminIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -17,9 +20,14 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, adminLogin, isAuthenticated, loading } = useAuth();
   const [error, setError] = React.useState('');
   const [isLogging, setIsLogging] = React.useState(false);
+  const [showAdminLogin, setShowAdminLogin] = React.useState(false);
+  const [adminCredentials, setAdminCredentials] = React.useState({
+    username: '',
+    password: ''
+  });
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -68,6 +76,34 @@ const Login = () => {
     scope: 'openid email profile',
   });
 
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setIsLogging(true);
+    setError('');
+
+    try {
+      const result = await adminLogin(adminCredentials);
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Admin login failed');
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      setError('Admin login failed');
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setAdminCredentials({
+      ...adminCredentials,
+      [e.target.name]: e.target.value
+    });
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -107,29 +143,95 @@ const Login = () => {
             </Alert>
           )}
 
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            startIcon={<GoogleIcon />}
-            onClick={() => googleLogin()}
-            disabled={isLogging}
-            sx={{
-              mt: 3,
-              mb: 2,
-              py: 1.5,
-              backgroundColor: '#4285f4',
-              '&:hover': {
-                backgroundColor: '#357ae8',
-              },
-            }}
-          >
-            {isLogging ? t('app.loading') : t('auth.loginWithGoogle')}
-          </Button>
+          {!showAdminLogin ? (
+            <>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={<GoogleIcon />}
+                onClick={() => googleLogin()}
+                disabled={isLogging}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  backgroundColor: '#4285f4',
+                  '&:hover': {
+                    backgroundColor: '#357ae8',
+                  },
+                }}
+              >
+                {isLogging ? t('app.loading') : t('auth.loginWithGoogle')}
+              </Button>
 
-          <Typography variant="body2" color="text.secondary" align="center">
-            使用您的 Google 帳號登入以開始記錄氣象觀測資料
-          </Typography>
+              <Divider sx={{ my: 2 }}>or</Divider>
+
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => setShowAdminLogin(true)}
+                sx={{ mb: 2 }}
+              >
+                管理員登入 (Admin Login)
+              </Link>
+
+              <Typography variant="body2" color="text.secondary" align="center">
+                使用您的 Google 帳號登入以開始記錄氣象觀測資料
+              </Typography>
+            </>
+          ) : (
+            <Box component="form" onSubmit={handleAdminLogin} sx={{ mt: 3, width: '100%' }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
+                autoFocus
+                value={adminCredentials.username}
+                onChange={handleInputChange}
+                disabled={isLogging}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                value={adminCredentials.password}
+                onChange={handleInputChange}
+                disabled={isLogging}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={<AdminIcon />}
+                disabled={isLogging}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                }}
+              >
+                {isLogging ? 'Logging in...' : 'Admin Login'}
+              </Button>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => setShowAdminLogin(false)}
+              >
+                ← Back to Google Login
+              </Link>
+            </Box>
+          )}
         </Paper>
       </Box>
     </Container>

@@ -65,6 +65,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const adminLogin = async (credentials) => {
+    try {
+      const response = await authAPI.adminLogin(credentials);
+      const { access_token, user: userData } = response.data;
+      
+      // Store token and user data
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      setUser(userData);
+      setIsAuthenticated(true);
+      
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Admin login failed:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || 'Admin login failed' 
+      };
+    }
+  };
+
   const logout = async () => {
     try {
       await authAPI.logout();
@@ -94,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading,
     login,
+    adminLogin,
     logout,
     refreshUser,
     isAdmin: user?.is_admin || false,

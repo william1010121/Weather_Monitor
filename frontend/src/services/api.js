@@ -43,6 +43,7 @@ api.interceptors.response.use(
 export const authAPI = {
   loginWithGoogle: () => api.get('/auth/google'),
   verifyGoogleToken: (tokenData) => api.post('/auth/google/verify', tokenData),
+  adminLogin: (credentials) => api.post('/auth/admin/login', credentials),
   logout: () => api.post('/auth/logout'),
 };
 
